@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件借阅管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            background: #f9f9f9;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            background: white;
+        }
+
+        .tab:hover {
+            background: white;
+        }
+
+        .content {
+            display: none;
+            padding: 30px;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #ccc;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-borrowed {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-returned {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status-overdue {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .overdue-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+
+        .file-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .file-info div {
+            margin-bottom: 8px;
+        }
+
+        .file-info label {
+            font-weight: 600;
+            color: #333;
+            display: inline-block;
+            width: 80px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .table {
+                font-size: 12px;
+            }
+
+            .table th,
+            .table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 文件借阅管理系统</h1>
+            <p>完全离线运行 | 内网保密</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="borrow">借出</div>
+            <div class="tab" data-tab="return">归还</div>
+            <div class="tab" data-tab="admin">管理员</div>
+        </div>
+
+        <!-- 借出页面 -->
+        <div id="borrow" class="content active">
+            <div id="borrow-message" class="message"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="borrow-date">来文日期 *</label>
+                    <input type="date" id="borrow-date">
+                </div>
+
+                <div class="form-group">
+                    <label for="borrow-unit">来文单位 *</label>
+                    <input type="text" id="borrow-unit" placeholder="如：市委办公室" oninput="updateUnitSuggestions()">
+                    <div id="borrow-unit-suggestions" style="border: 1px solid #ddd; border-radius: 5px; max-height: 150px; overflow-y: auto; display: none; margin-top: 5px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="borrow-filename">文件名（可选）</label>
+                    <input type="text" id="borrow-filename" placeholder="如：2026年党风廉政建设工作通知">
+                </div>
+
+                <div class="form-group">
+                    <label for="borrow-docnum">文号（可选）</label>
+                    <input type="text" id="borrow-docnum" placeholder="如：市委〔2026〕15号">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="borrow-person">借阅人 *</label>
+                <input type="text" id="borrow-person" placeholder="输入借阅人姓名">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="borrow-type">借阅类型 *</label>
+                    <select id="borrow-type">
+                        <option value="纸质">纸质原件</option>
+                        <option value="电子">电子版</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="borrow-days">借阅天数 *</label>
+                    <input type="number" id="borrow-days" value="1" min="1" max="365">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="borrow-purpose">用途（可选）</label>
+                <textarea id="borrow-purpose" placeholder="填写借阅用途（如：案件查证）"></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="submitBorrow()">确认借出</button>
+                <button class="btn-secondary" onclick="clearBorrowForm()">清空</button>
+            </div>
+        </div>
+
+        <!-- 归还页面 -->
+        <div id="return" class="content">
+            <div id="return-message" class="message"></div>
+
+            <p style="color: #666; margin-bottom: 20px;">选择搜索方式，查找要归还的文件</p>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="btn-primary" onclick="switchReturnMode('unit')" id="btn-return-unit" style="flex: 1; padding: 10px;">按单位搜索</button>
+                <button class="btn-secondary" onclick="switchReturnMode('filename')" id="btn-return-filename" style="flex: 1; padding: 10px;">按文件名搜索</button>
+                <button class="btn-secondary" onclick="switchReturnMode('borrower')" id="btn-return-borrower" style="flex: 1; padding: 10px;">按借阅人搜索</button>
+            </div>
+
+            <div id="return-unit-box" style="display: block;">
+                <div class="form-group">
+                    <label for="return-unit">来文单位 *</label>
+                    <input type="text" id="return-unit" placeholder="如：市委办公室" oninput="searchUnreturnedFiles()">
+                </div>
+            </div>
+
+            <div id="return-filename-box" style="display: none;">
+                <div class="form-group">
+                    <label for="return-filename">文件名 *</label>
+                    <input type="text" id="return-filename" placeholder="输入文件名关键词" oninput="searchUnreturnedFiles()">
+                </div>
+            </div>
+
+            <div id="return-borrower-box" style="display: none;">
+                <div class="form-group">
+                    <label for="return-borrower">借阅人 *</label>
+                    <input type="text" id="return-borrower" placeholder="如：张某某" oninput="searchUnreturnedFiles()">
+                </div>
+            </div>
+
+            <div id="file-list-box" style="display: none; margin-top: 20px;">
+                <label>待归还的文件：</label>
+                <div id="file-list" style="border: 1px solid #ddd; border-radius: 5px; max-height: 300px; overflow-y: auto;">
+                </div>
+            </div>
+
+            <div id="selected-file-info" class="file-info" style="display: none; margin-top: 20px;">
+                <div><label>日期:</label> <span id="selected-date"></span></div>
+                <div><label>单位:</label> <span id="selected-unit"></span></div>
+                <div><label>文件名:</label> <span id="selected-filename"></span></div>
+                <div><label>借阅人:</label> <span id="selected-borrower"></span></div>
+                <div><label>借阅时间:</label> <span id="selected-borrow-time"></span></div>
+                <div><label>应还时间:</label> <span id="selected-due-time"></span></div>
+            </div>
+
+            <div class="button-group" style="margin-top: 30px;">
+                <button class="btn-primary" onclick="submitReturn()" id="return-btn" disabled>确认归还</button>
+                <button class="btn-primary" onclick="showTransferDialog()" id="transfer-btn" disabled style="background: #f39c12;">转交给他人</button>
+            </div>
+        </div>
+
+        <!-- 管理员页面 -->
+        <div id="admin" class="content">
+            <div id="admin-message" class="message"></div>
+
+            <div id="admin-login-box">
+                <p style="color: #666; margin-bottom: 20px;">请输入管理员密码查看待归还清单</p>
+                <div class="form-group">
+                    <label for="admin-password">管理员密码 *</label>
+                    <input type="password" id="admin-password" placeholder="输入密码">
+                </div>
+                <button class="btn-primary" onclick="adminLogin()" style="width: 100%;">进入管理员视图</button>
+            </div>
+
+            <div id="admin-view-box" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">待归还文件清单</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-secondary" onclick="exportToExcel()" style="width: auto; padding: 8px 15px;">📥 导出Excel</button>
+                        <button class="btn-secondary" onclick="adminLogout()" style="width: auto; padding: 8px 15px;">退出</button>
+                    </div>
+                </div>
+
+                <div id="admin-summary" style="background: #f0f8ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <div style="font-size: 14px;">
+                        <strong>总计：</strong>
+                        <span id="total-count">0</span>份待归还
+                        <span style="margin-left: 20px; color: #dc3545;">超期：<span id="overdue-count">0</span>份</span>
+                    </div>
+                </div>
+
+                <div id="admin-list" style="border: 1px solid #ddd; border-radius: 5px; max-height: 600px; overflow-y: auto;">
+                </div>
+
+                <div id="empty-admin" class="empty" style="display: none;">
+                    所有文件都已归还！
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // ===== 全局变量 =====
+        let records = [];
+        let unitHistory = [];  // 历史单位列表
+
+        // ===== 初始化 =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载历史单位
+            const saved = localStorage.getItem('borrowUnitHistory');
+            if (saved) {
+                unitHistory = JSON.parse(saved);
+            }
+
+            // 恢复上次的搜索模式
+            const lastMode = localStorage.getItem('lastReturnMode');
+            if (lastMode) {
+                switchReturnMode(lastMode);
+            }
+        });
+
+        // ===== 自动完成功能 =====
+        function updateUnitSuggestions() {
+            const input = document.getElementById('borrow-unit').value.trim().toLowerCase();
+            const suggestBox = document.getElementById('borrow-unit-suggestions');
+
+            if (!input) {
+                suggestBox.style.display = 'none';
+                return;
+            }
+
+            // 过滤匹配的历史单位
+            const matches = unitHistory.filter(unit => unit.toLowerCase().includes(input));
+
+            if (matches.length === 0) {
+                suggestBox.style.display = 'none';
+                return;
+            }
+
+            suggestBox.innerHTML = '';
+            matches.forEach(unit => {
+                const div = document.createElement('div');
+                div.style.padding = '8px 10px';
+                div.style.cursor = 'pointer';
+                div.style.borderBottom = '1px solid #eee';
+                div.onmouseover = () => div.style.background = '#f0f0f0';
+                div.onmouseout = () => div.style.background = 'white';
+                div.onclick = () => {
+                    document.getElementById('borrow-unit').value = unit;
+                    suggestBox.style.display = 'none';
+                };
+                div.textContent = unit;
+                suggestBox.appendChild(div);
+            });
+
+            suggestBox.style.display = 'block';
+        }
+
+        function saveUnitToHistory(unit) {
+            if (!unit || !unit.trim()) return;
+            unit = unit.trim();
+            // 如果已存在，删除后重新加到最前面
+            unitHistory = unitHistory.filter(u => u !== unit);
+            unitHistory.unshift(unit);
+            // 只保留最近10个
+            unitHistory = unitHistory.slice(0, 10);
+            localStorage.setItem('borrowUnitHistory', JSON.stringify(unitHistory));
+        }
+
+        // ===== 标签页切换 =====
+        function switchTab(tabName) {
+            // 隐藏所有内容
+            document.querySelectorAll('.content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // 显示选中的标签页
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        // 添加标签页点击事件
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                switchTab(tabName);
+            });
+        });
+
+        // ===== API 调用 =====
+        function loadRecords() {
+            fetch('/api/records')
+                .then(response => response.json())
+                .then(data => {
+                    records = data;
+                });
+        }
+
+        // ===== 借出流程 =====
+        function submitBorrow() {
+            const date = document.getElementById('borrow-date').value;
+            const unit = document.getElementById('borrow-unit').value.trim();
+            const filename = document.getElementById('borrow-filename').value.trim();
+            const docnum = document.getElementById('borrow-docnum').value.trim();
+            const borrower = document.getElementById('borrow-person').value.trim();
+            const borrowType = document.getElementById('borrow-type').value;
+            const days = document.getElementById('borrow-days').value;
+            const purpose = document.getElementById('borrow-purpose').value.trim();
+
+            // 验证必填项
+            if (!date || !unit || !borrower || !days) {
+                showMessage('borrow-message', '请填写必填项（日期、单位、借阅人、天数）', 'error');
+                return;
+            }
+
+            // 保存单位到历史
+            saveUnitToHistory(unit);
+
+            const payload = {
+                date: date,
+                unit: unit,
+                filename: filename,
+                docnum: docnum,
+                borrower: borrower,
+                type: borrowType,
+                days: days,
+                purpose: purpose
+            };
+
+            fetch('/api/borrow', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('borrow-message', '✓ ' + data.message, 'success');
+                        clearBorrowForm();
+                    } else {
+                        showMessage('borrow-message', '✗ ' + data.message, 'error');
+                    }
+                });
+        }
+
+        function clearBorrowForm() {
+            document.getElementById('borrow-date').value = '';
+            document.getElementById('borrow-unit').value = '';
+            document.getElementById('borrow-filename').value = '';
+            document.getElementById('borrow-docnum').value = '';
+            document.getElementById('borrow-person').value = '';
+            document.getElementById('borrow-type').value = '纸质';
+            document.getElementById('borrow-days').value = '1';
+            document.getElementById('borrow-purpose').value = '';
+        }
+
+        // ===== 归还流程 =====
+        let selectedReturnRecord = null;
+        let returnMode = 'unit'; // 'unit', 'filename', 'borrower'
+
+        function switchReturnMode(mode) {
+            returnMode = mode;
+            localStorage.setItem('lastReturnMode', mode);  // 记忆选择
+
+            // 更新按钮样式
+            document.getElementById('btn-return-unit').className = mode === 'unit' ? 'btn-primary' : 'btn-secondary';
+            document.getElementById('btn-return-filename').className = mode === 'filename' ? 'btn-primary' : 'btn-secondary';
+            document.getElementById('btn-return-borrower').className = mode === 'borrower' ? 'btn-primary' : 'btn-secondary';
+
+            // 隐藏所有搜索框
+            document.getElementById('return-unit-box').style.display = 'none';
+            document.getElementById('return-filename-box').style.display = 'none';
+            document.getElementById('return-borrower-box').style.display = 'none';
+
+            // 显示选中的搜索框
+            if (mode === 'unit') {
+                document.getElementById('return-unit-box').style.display = 'block';
+                document.getElementById('return-unit').focus();
+            } else if (mode === 'filename') {
+                document.getElementById('return-filename-box').style.display = 'block';
+                document.getElementById('return-filename').focus();
+            } else if (mode === 'borrower') {
+                document.getElementById('return-borrower-box').style.display = 'block';
+                document.getElementById('return-borrower').focus();
+            }
+
+            // 清空输入框和结果
+            document.getElementById('return-unit').value = '';
+            document.getElementById('return-filename').value = '';
+            document.getElementById('return-borrower').value = '';
+            document.getElementById('file-list-box').style.display = 'none';
+            document.getElementById('selected-file-info').style.display = 'none';
+            document.getElementById('return-btn').disabled = true;
+            document.getElementById('transfer-btn').disabled = true;
+        }
+
+        function searchUnreturnedFiles() {
+            let searchValue = '';
+
+            if (returnMode === 'unit') {
+                searchValue = document.getElementById('return-unit').value.trim();
+                if (!searchValue) {
+                    document.getElementById('file-list-box').style.display = 'none';
+                    document.getElementById('selected-file-info').style.display = 'none';
+                    document.getElementById('return-btn').disabled = true;
+                    return;
+                }
+            } else if (returnMode === 'filename') {
+                searchValue = document.getElementById('return-filename').value.trim();
+                if (!searchValue) {
+                    document.getElementById('file-list-box').style.display = 'none';
+                    document.getElementById('selected-file-info').style.display = 'none';
+                    document.getElementById('return-btn').disabled = true;
+                    return;
+                }
+            } else if (returnMode === 'borrower') {
+                searchValue = document.getElementById('return-borrower').value.trim();
+                if (!searchValue) {
+                    document.getElementById('file-list-box').style.display = 'none';
+                    document.getElementById('selected-file-info').style.display = 'none';
+                    document.getElementById('return-btn').disabled = true;
+                    return;
+                }
+            }
+
+            // 调用API查询
+            fetch(`/api/unreturned?mode=${returnMode}&query=${encodeURIComponent(searchValue)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.records.length > 0) {
+                        displayUnreturnedFiles(data.records);
+                        document.getElementById('file-list-box').style.display = 'block';
+                    } else {
+                        showMessage('return-message', '没有找到匹配的未归还文件', 'error');
+                        document.getElementById('file-list-box').style.display = 'none';
+                        document.getElementById('selected-file-info').style.display = 'none';
+                        document.getElementById('return-btn').disabled = true;
+                    }
+                })
+                .catch(err => {
+                    showMessage('return-message', '查询失败: ' + err, 'error');
+                });
+        }
+
+        function displayUnreturnedFiles(records) {
+            const listBox = document.getElementById('file-list');
+            listBox.innerHTML = '';
+
+            records.forEach((record, index) => {
+                const div = document.createElement('div');
+                div.style.padding = '10px';
+                div.style.borderBottom = '1px solid #eee';
+                div.style.cursor = 'pointer';
+                div.style.display = 'flex';
+                div.style.alignItems = 'center';
+
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'return-file';
+                radio.value = index;
+                radio.style.marginRight = '10px';
+
+                const label = document.createElement('label');
+                label.style.cursor = 'pointer';
+                label.style.flex = '1';
+                label.textContent = `${record['来文日期']} - ${record['文件名'] || '无名称'} (借阅人: ${record['借阅人']})`;
+
+                // 点击整行时选中
+                div.onclick = function() {
+                    radio.checked = true;
+                    selectFileForReturn(record);
+                };
+
+                div.appendChild(radio);
+                div.appendChild(label);
+                listBox.appendChild(div);
+            });
+        }
+
+        function selectFileForReturn(record) {
+            selectedReturnRecord = record;
+            document.getElementById('selected-date').textContent = record['来文日期'];
+            document.getElementById('selected-unit').textContent = record['来文单位'];
+            document.getElementById('selected-filename').textContent = record['文件名'] || '-';
+            document.getElementById('selected-borrower').textContent = record['借阅人'];
+            document.getElementById('selected-borrow-time').textContent = record['借阅时间'];
+            document.getElementById('selected-due-time').textContent = record['应还时间'];
+            document.getElementById('selected-file-info').style.display = 'block';
+            document.getElementById('return-btn').disabled = false;
+            document.getElementById('transfer-btn').disabled = false;
+        }
+
+        function submitReturn() {
+            if (!selectedReturnRecord) {
+                showMessage('return-message', '请选择要归还的文件', 'error');
+                return;
+            }
+
+            const date = selectedReturnRecord['来文日期'];
+            const unit = selectedReturnRecord['来文单位'];
+
+            fetch('/api/return', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date: date, unit: unit })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('return-message', '✓ ' + data.message, 'success');
+                        document.getElementById('return-unit').value = '';
+                        document.getElementById('return-filename').value = '';
+                        document.getElementById('return-borrower').value = '';
+                        document.getElementById('file-list-box').style.display = 'none';
+                        document.getElementById('selected-file-info').style.display = 'none';
+                        document.getElementById('return-btn').disabled = true;
+                        document.getElementById('transfer-btn').disabled = true;
+                        selectedReturnRecord = null;
+                    } else {
+                        showMessage('return-message', '✗ ' + data.message, 'error');
+                    }
+                });
+        }
+
+        function showTransferDialog() {
+            if (!selectedReturnRecord) {
+                showMessage('return-message', '请选择要转交的文件', 'error');
+                return;
+            }
+
+            const toName = prompt('输入接收人的名字:');
+            if (!toName) return;
+
+            const days = prompt('接收人需要借阅几天?', '1');
+            if (!days) return;
+
+            const date = selectedReturnRecord['来文日期'];
+            const unit = selectedReturnRecord['来文单位'];
+
+            fetch('/api/transfer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    date: date,
+                    unit: unit,
+                    to_name: toName.trim(),
+                    days: parseInt(days)
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('return-message', '✓ 转交成功！', 'success');
+                        document.getElementById('return-unit').value = '';
+                        document.getElementById('return-filename').value = '';
+                        document.getElementById('return-borrower').value = '';
+                        document.getElementById('file-list-box').style.display = 'none';
+                        document.getElementById('selected-file-info').style.display = 'none';
+                        document.getElementById('return-btn').disabled = true;
+                        document.getElementById('transfer-btn').disabled = true;
+                        selectedReturnRecord = null;
+                    } else {
+                        showMessage('return-message', '✗ ' + data.message, 'error');
+                    }
+                });
+        }
+
+        // 查询功能
+        let selectedBorrowRecord = null;
+
+        function searchMyBorrows() {
+            const name = document.getElementById('query-name').value.trim();
+
+            if (!name) {
+                document.getElementById('my-borrows-box').style.display = 'none';
+                document.getElementById('empty-borrows').style.display = 'none';
+                return;
+            }
+
+            fetch(`/api/my-borrows?name=${encodeURIComponent(name)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.records.length > 0) {
+                        displayMyBorrows(data.records);
+                        document.getElementById('my-borrows-box').style.display = 'block';
+                        document.getElementById('empty-borrows').style.display = 'none';
+                    } else {
+                        document.getElementById('my-borrows-box').style.display = 'none';
+                        document.getElementById('empty-borrows').style.display = 'block';
+                    }
+                });
+        }
+
+        function displayMyBorrows(records) {
+            const list = document.getElementById('my-borrows-list');
+            list.innerHTML = '';
+
+            records.forEach((record, index) => {
+                const now = new Date();
+                const dueDate = new Date(record['应还时间']);
+                const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+
+                let statusColor = '#28a745';
+                let statusText = '正常';
+                if (daysLeft <= 0) {
+                    statusColor = '#dc3545';
+                    statusText = '已逾期';
+                } else if (daysLeft <= 1) {
+                    statusColor = '#ffc107';
+                    statusText = '即将逾期';
+                }
+
+                const div = document.createElement('div');
+                div.style.padding = '15px';
+                div.style.borderBottom = '1px solid #eee';
+                div.style.borderLeft = `4px solid ${statusColor}`;
+
+                div.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 5px;">${record['文件名'] || record['来文单位']}</div>
+                            <div style="font-size: 12px; color: #666;">
+                                来文日期: ${record['来文日期']} | 借阅时间: ${record['借阅时间']}
+                            </div>
+                            <div style="font-size: 12px; color: #666;">
+                                应还时间: ${record['应还时间']}
+                            </div>
+                        </div>
+                        <div style="text-align: right; margin-left: 10px;">
+                            <span style="color: ${statusColor}; font-weight: 600;">${statusText}</span>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                ${daysLeft > 0 ? '还剩' + daysLeft + '天' : '已逾期' + Math.abs(daysLeft) + '天'}
+                            </div>
+                            <button class="btn-primary" style="margin-top: 10px; padding: 5px 10px; font-size: 12px; width: auto;" onclick="selectBorrowForTransfer(${index}, '${record['来文日期']}', '${record['来文单位']}')">转交</button>
+                        </div>
+                    </div>
+                `;
+
+                list.appendChild(div);
+            });
+        }
+
+        function selectBorrowForTransfer(index, date, unit) {
+            selectedBorrowRecord = { date: date, unit: unit };
+
+            // 显示转交对话框
+            const toName = prompt('输入接收人的名字:');
+            if (!toName) return;
+
+            const days = prompt('接收人需要借阅几天?', '1');
+            if (!days) return;
+
+            fetch('/api/transfer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    date: selectedBorrowRecord.date,
+                    unit: selectedBorrowRecord.unit,
+                    to_name: toName.trim(),
+                    days: parseInt(days)
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✓ 转交成功！');
+                        document.getElementById('query-name').value = '';
+                        document.getElementById('my-borrows-box').style.display = 'none';
+                        searchMyBorrows();
+                        selectedBorrowRecord = null;
+                    } else {
+                        alert('✗ ' + data.message);
+                    }
+                });
+        }
+
+        // ===== 管理员功能 =====
+        const ADMIN_PASSWORD = 'admin123'; // 默认密码，可修改
+        let isAdminLoggedIn = false;
+
+        function adminLogin() {
+            const password = document.getElementById('admin-password').value;
+
+            if (password === ADMIN_PASSWORD) {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-login-box').style.display = 'none';
+                document.getElementById('admin-view-box').style.display = 'block';
+                loadAdminData();
+            } else {
+                showMessage('admin-message', '密码错误', 'error');
+            }
+        }
+
+        function adminLogout() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-password').value = '';
+            document.getElementById('admin-login-box').style.display = 'block';
+            document.getElementById('admin-view-box').style.display = 'none';
+        }
+
+        function exportToExcel() {
+            fetch('/api/admin/export')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `待归还文件清单_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                });
+        }
+
+        function loadAdminData() {
+            fetch('/api/admin/unreturned')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayAdminList(data.records);
+                    } else {
+                        showMessage('admin-message', '加载失败: ' + data.message, 'error');
+                    }
+                });
+        }
+
+        function displayAdminList(records) {
+            const list = document.getElementById('admin-list');
+            const emptyDiv = document.getElementById('empty-admin');
+
+            if (records.length === 0) {
+                list.innerHTML = '';
+                emptyDiv.style.display = 'block';
+                document.getElementById('total-count').textContent = '0';
+                document.getElementById('overdue-count').textContent = '0';
+                return;
+            }
+
+            emptyDiv.style.display = 'none';
+            list.innerHTML = '';
+
+            // 计算每条记录的状态并排序
+            const now = new Date();
+            const recordsWithStatus = records.map(record => {
+                const dueDate = new Date(record['应还时间']);
+                const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+
+                let status = '正常';
+                let priority = 999;
+                let daysValue = 0;
+
+                if (daysLeft < 0) {
+                    status = '已超期';
+                    priority = 0;
+                    daysValue = Math.abs(daysLeft);
+                } else if (daysLeft <= 1) {
+                    status = '即将超期';
+                    priority = 1;
+                    daysValue = daysLeft;
+                } else {
+                    status = '正常';
+                    priority = 2;
+                    daysValue = daysLeft;
+                }
+
+                return { ...record, status, priority, daysValue, daysLeft, dueDate };
+            });
+
+            // 排序：先按优先级（超期最严重排最上），再按超期天数（超期最多排最上），最后按应还时间
+            recordsWithStatus.sort((a, b) => {
+                if (a.priority !== b.priority) {
+                    return a.priority - b.priority; // 优先级：超期(0) > 即将(1) > 正常(2)
+                }
+                if (a.priority === 0) {
+                    return b.daysValue - a.daysValue; // 超期时：超期天数越多越靠前
+                } else if (a.priority === 1) {
+                    return a.daysLeft - b.daysLeft; // 即将超期时：越快超期越靠前
+                } else {
+                    return a.dueDate - b.dueDate; // 正常时：按应还时间排序
+                }
+            });
+
+            // 按借阅人分组显示
+            const groupedByPerson = {};
+            let overdueCount = 0;
+
+            recordsWithStatus.forEach(record => {
+                const person = record['借阅人'];
+                if (!groupedByPerson[person]) {
+                    groupedByPerson[person] = [];
+                }
+                groupedByPerson[person].push(record);
+
+                if (record.status === '已超期') {
+                    overdueCount++;
+                }
+            });
+
+            // 显示每个人的记录
+            Object.keys(groupedByPerson).forEach(person => {
+                const personRecords = groupedByPerson[person];
+                const personDiv = document.createElement('div');
+                personDiv.style.padding = '15px';
+                personDiv.style.borderBottom = '1px solid #eee';
+                personDiv.style.background = '#fafafa';
+
+                let personHTML = `<div style="font-weight: 600; margin-bottom: 10px; color: #333;">${person} (${personRecords.length}份)</div>`;
+
+                personRecords.forEach(record => {
+                    let statusColor = '#28a745';
+                    let statusText = '正常';
+                    let statusEmoji = '';
+
+                    if (record.status === '已超期') {
+                        statusColor = '#dc3545';
+                        statusText = `已超期${Math.abs(record.daysLeft)}天`;
+                        statusEmoji = '🔴 ';
+                    } else if (record.status === '即将超期') {
+                        statusColor = '#ffc107';
+                        statusText = `即将超期(${record.daysLeft}天)`;
+                        statusEmoji = '🟡 ';
+                    } else {
+                        statusEmoji = '🟢 ';
+                    }
+
+                    personHTML += `
+                        <div style="margin-left: 10px; padding: 8px; background: white; border-left: 3px solid ${statusColor}; margin-bottom: 8px; font-size: 13px;">
+                            <div><strong>${record['文件名'] || record['来文单位']}</strong></div>
+                            <div style="color: #666;">来文日期: ${record['来文日期']} | 应还: ${record['应还时间']}</div>
+                            <div style="color: ${statusColor}; font-weight: 600;">
+                                ${statusEmoji}${statusText}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                personDiv.innerHTML = personHTML;
+                list.appendChild(personDiv);
+            });
+
+            document.getElementById('total-count').textContent = recordsWithStatus.length;
+            document.getElementById('overdue-count').textContent = overdueCount;
+        }
+
+
+
+
+        // ===== 消息提示 =====
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `message ${type}`;
+
+            setTimeout(() => {
+                element.className = 'message';
+            }, 5000);
+        }
+
+        // 定期刷新记录（每10秒）
+        setInterval(() => {
+            loadRecords();
+            if (document.getElementById('query').classList.contains('active')) {
+                displayRecords();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
