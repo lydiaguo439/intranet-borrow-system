@@ -33,19 +33,10 @@
 ### 步骤1：准备环境
 
 1. **安装Python**（仅需一次）
-<<<<<<< HEAD
    
    - 下载：https://www.python.org/downloads/
    - 打开安装程序，一路"下一步"完成安装
    - 验证：打开CMD，输入 `python --version` 看是否显示版本号
-=======
-   - 下载: https://www.python.org/downloads/
-   - 安装时勾选"Add Python to PATH"
-   - 验证: 打开CMD，输入 `python --version`
-
-2. **确认文件位置**
-   - 借阅台账位置: 自动生成 `D:\借阅系统\借阅台账.xlsx`
->>>>>>> 760a771d5163b2addee4dc6e25633cf05c3dbba9
 
 ---
 
